@@ -1,3 +1,5 @@
 .env
 documents/*
 env/*
+old_code
+.env
