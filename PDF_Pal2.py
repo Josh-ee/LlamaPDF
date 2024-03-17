@@ -1,6 +1,9 @@
 import chainlit as cl
 import asyncio
 import re
+import requests
+from bs4 import BeautifulSoup
+import arxiv
 
 # from llama_index import VectorStoreIndex, ServiceContext
 
@@ -231,7 +234,8 @@ async def main(message: cl.Message):
 
     question = (message.content).strip()
 
-    ### Find arxiv papers
+    ######################## Find arxiv papers ##############################
+
     pattern = '(?:https?:\/\/)?arxiv\.org\/abs\/(\d{4}\.\d{4,5})(?:v\d+)?$'
     match = re.search(pattern, question)
     if match:
@@ -240,12 +244,28 @@ async def main(message: cl.Message):
         arxiv_id = None
     
     if arxiv_id is not None:
-        search = arxiv.Search(id_list=match)
+        search = arxiv.Search(id_list=arxiv_id)
         paper = next(arxiv.Client().results(search))
         paper_path = paper.download_pdf() 
-        print(paper.title)
+        # print(paper.title)
 
-    
+        ### Extract title
+        url = f"https://arxiv.org/abs/{arxiv_id}"
+        response = requests.get(url)
+
+        if response.status_code == 200:
+            soup = BeautifulSoup(response.text, 'html.parser')
+            title = soup.find('meta', attrs={'name': 'citation_title'})
+        
+        if title: 
+            title = title['content']
+        else:
+            print("Title not found!")
+            title = None
+
+
+    #########################################################################
+
     if cal_chat_bot.question_count != 0:
         # print("rephrasing with MEM")
         rephrase_prompt = cal_chat_bot.memory_prompt.format(chat_history = cal_chat_bot.chat_history, question=question)
