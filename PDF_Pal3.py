@@ -308,7 +308,7 @@ async def main(message: cl.Message):
 
 
         # Return the top 3 sources 
-        retrieve_engine = index.as_retriever(similarity_top_k = 2,
+        retrieve_engine = index.as_retriever(similarity_top_k = 5,
                                     node_postprocessors=[SentenceEmbeddingOptimizer(percentile_cutoff=0.8, embed_model=pdf_chat_bot.embedding_model)]) 
         cl.user_session.set("retrieve_engine", retrieve_engine)
         
