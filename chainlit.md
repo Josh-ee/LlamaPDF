@@ -1,14 +1,10 @@
-# Welcome to Chainlit! 🚀🤖
+# Welcome to PaperPilot! 🚀📄
 
-Hi there, Developer! 👋 We're excited to have you on board. Chainlit is a powerful tool designed to help you prototype, debug and share applications built on top of LLMs.
+Hello, Scholar! 👋 We're delighted to welcome you aboard. PaperPilot is specifically designed to navigate the expansive skies of academic research across multiple databases.
 
 ## Useful Links 🔗
 
-- **Documentation:** Get started with our comprehensive [Chainlit Documentation](https://docs.chainlit.io) 📚
-- **Discord Community:** Join our friendly [Chainlit Discord](https://discord.gg/k73SQ3FyUh) to ask questions, share your projects, and connect with other developers! 💬
+- **Documentation:** Begin your expedition with our in-depth PaperPilot Documentation 📖. It's your compass to mastering the functionalities and features of our platform.
+- **Discord Community:** Embark on collaborative journeys and share your academic discoveries with like-minded scholars in our PaperPilot Discord community! 🌍✈️
 
-We can't wait to see what you create with Chainlit! Happy coding! 💻😊
-
-## Welcome screen
-
-To modify the welcome screen, edit the `chainlit.md` file at the root of your project. If you do not want a welcome screen, just leave this file empty.
+Your adventure into the realm of scholarly research is about to get a whole lot more exciting with PaperPilot. We're here to elevate your research experience to new heights! 📚💡
