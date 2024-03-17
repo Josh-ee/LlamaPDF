@@ -1,5 +1,10 @@
 import chainlit as cl
 import asyncio
+import re
+import requests
+from bs4 import BeautifulSoup
+import arxiv
+
 
 # from llama_index import VectorStoreIndex, ServiceContext
 
@@ -220,6 +225,25 @@ async def factory():
     # cl.user_session.set("ft_llm", pdf_chat_bot.ft_llm)
 
 
+def check_arxiv(question):
+    ## right now it checks only one appearance of arxiv url
+
+    pattern = '(?:https?://)?arxiv.org/abs/(\d{4}\.\d{4,5})(?:v\d+)?$'
+    match = re.search(pattern, question)
+    if match:
+        arxiv_id = match.group(1)  # Return the matched arXiv ID
+    else:
+        arxiv_id = None
+        return False, None
+    
+    if arxiv_id is not None:
+        print(arxiv_id)
+        search = arxiv.Search(id_list=[arxiv_id])
+        paper = next(arxiv.Client().results(search))
+        paper_path = paper.download_pdf() 
+        # print(paper.title)
+        return True, paper_path
+
 @cl.on_message
 async def main(message: cl.Message):
     
@@ -228,45 +252,45 @@ async def main(message: cl.Message):
     llm = cl.user_session.get("llm")
 
     question = (message.content).strip()
-    check_str = str(question.lower())
+    check_upload_keyword = (str(question.lower()) == 'upload')
+    check_arxiv_url_included, arxiv_paper_path = check_arxiv(question)
+
+
     # print(question, type(question))
-    if check_str == 'upload':
+    if check_upload_keyword or check_arxiv_url_included:
         response_message = cl.Message(content="")
-        
-
-        files = None
-        while files == None:
-            files = await cl.AskFileMessage(
-            content="Please upload a text file to begin!", accept=["pdf"], max_size_mb=10
-        ).send()
-            
-        num_docs = len(files)
-
-        if num_docs == 1:
-            load_str = f"One Document Received, please wait for it to process...\n"
-        else:
-            load_str = f"{num_docs} Documents Received, please wait for them to process...\n"
-            
-        for char in str(load_str):
-            await asyncio.sleep(0.01)
-            await response_message.stream_token(token=char)
-
         pdf_chat_bot.DOCS_LOADED = True
+        if check_upload_keyword:
+            files = None
+            while files == None:
+                files = await cl.AskFileMessage(
+                content="Please upload a text file to begin!", accept=["pdf"], max_size_mb=10
+            ).send()
+            
+            num_docs = len(files)
 
-    
-        #print((files))
-        pdf_file = files[0]
+            if num_docs == 1:
+                load_str = f"One Document Received, please wait for it to process...\n"
+            else:
+                load_str = f"{num_docs} Documents Received, please wait for them to process...\n"
+                
+            for char in str(load_str):
+                await asyncio.sleep(0.01)
+                await response_message.stream_token(token=char)
+
+            # pdf_chat_bot.DOCS_LOADED = True
+            pdf_file = files[0]
 
         parser = LlamaParse(
             api_key=li_api_key,  # can also be set in your env as LLAMA_CLOUD_API_KEY
-            result_type="markdown",  # "markdown" and "text" are available
+            result_type="text",  # "markdown" and "text" are available
             num_workers=4, # if multiple files passed, split in `num_workers` API calls
             verbose=False,
             language="en" # Optionaly you can define a language, default=en
         )
 
         # sync
-        documents = parser.load_data(pdf_file.path)
+        documents = parser.load_data(pdf_file.path if arxiv_paper_path is None else arxiv_paper_path)
         # print(documents)
 
         # nodes = parser.get_nodes_from_documents(documents)
@@ -295,6 +319,7 @@ async def main(message: cl.Message):
 
         return
     
+
 
     
     if pdf_chat_bot.question_count != 0:
