@@ -1,5 +1,6 @@
 import chainlit as cl
 import asyncio
+import re
 
 # from llama_index import VectorStoreIndex, ServiceContext
 
@@ -230,7 +231,20 @@ async def main(message: cl.Message):
 
     question = (message.content).strip()
 
+    ### Find arxiv papers
+    pattern = '(?:https?:\/\/)?arxiv\.org\/abs\/(\d{4}\.\d{4,5})(?:v\d+)?$'
+    match = re.search(pattern, question)
+    if match:
+        arxiv_id = match.group(1)  # Return the matched arXiv ID
+    else:
+        arxiv_id = None
     
+    if arxiv_id is not None:
+        search = arxiv.Search(id_list=match)
+        paper = next(arxiv.Client().results(search))
+        paper_path = paper.download_pdf() 
+        print(paper.title)
+
     
     if cal_chat_bot.question_count != 0:
         # print("rephrasing with MEM")
