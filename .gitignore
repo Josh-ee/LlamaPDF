@@ -3,3 +3,4 @@ env/*
 old_code
 .env
 .files
+.env
